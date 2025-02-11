@@ -1,0 +1,37 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+bool isWithinComment(const string& str) {
+    // Check for single-line comment
+    size_t singleLine = str.find("//");
+    if (singleLine >= 0 && singleLine < str.length()) {
+        return true;
+    }
+
+    // Check for multi-line comment
+    size_t multiStart = str.find("/*");
+    size_t multiEnd = str.find("*/");
+
+    if (multiStart >= 0 && multiStart < str.length() && 
+        (multiEnd < 0 || multiEnd > multiStart)) {
+        return true;
+    }
+
+    return false;
+}
+
+int main() {
+    string input;
+    cout << "Enter a string: ";
+    getline(cin, input);
+
+    if (isWithinComment(input)) {
+        cout << "The entered string is within a valid comment section.\n";
+    } else {
+        cout << "The entered string is NOT within a valid comment section.\n";
+    }
+
+    return 0;
+}
