@@ -1,0 +1,172 @@
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+const int MAX_RULES = 10;
+const int MAX_SYMBOLS = 20;
+
+char grammar[MAX_RULES][MAX_SYMBOLS];
+int numRules;
+
+char firstSets[MAX_RULES][MAX_SYMBOLS];
+char followSets[MAX_RULES][MAX_SYMBOLS];
+
+void computeFirst(char nonTerminal);
+void computeFollow(char nonTerminal);
+
+int main() {
+    cout << "Enter the number of production rules: ";
+    cin >> numRules;
+    cin.ignore(); // To ignore the newline character after the number
+
+    cout << "Enter the production rules (e.g., S->aB): " << endl;
+    for (int i = 0; i < numRules; i++) {
+        cin.getline(grammar[i], MAX_SYMBOLS);
+    }
+
+    // Initialize FIRST and FOLLOW sets
+    for (int i = 0; i < numRules; i++) {
+        firstSets[i][0] = '\0';
+        followSets[i][0] = '\0';
+    }
+
+    // Compute FIRST sets
+    for (int i = 0; i < numRules; i++) {
+        computeFirst(grammar[i][0]);
+    }
+
+    // Compute FOLLOW sets
+    for (int i = 0; i < numRules; i++) {
+        computeFollow(grammar[i][0]);
+    }
+
+    // Display FIRST sets
+    cout << "\nFIRST Sets:" << endl;
+    for (int i = 0; i < numRules; i++) {
+        cout << "FIRST(" << grammar[i][0] << ") = { ";
+        for (int j = 0; firstSets[i][j] != '\0'; j++) {
+            cout << firstSets[i][j] << " ";
+        }
+        cout << "}" << endl;
+    }
+
+    // Display FOLLOW sets
+    cout << "\nFOLLOW Sets:" << endl;
+    for (int i = 0; i < numRules; i++) {
+        cout << "FOLLOW(" << grammar[i][0] << ") = { ";
+        for (int j = 0; followSets[i][j] != '\0'; j++) {
+            cout << followSets[i][j] << " ";
+        }
+        cout << "}" << endl;
+    }
+
+    return 0;
+}
+
+void computeFirst(char nonTerminal) {
+    int index = -1;
+    for (int i = 0; i < numRules; i++) {
+        if (grammar[i][0] == nonTerminal) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) return;
+
+    for (int i = 3; grammar[index][i] != '\0'; i++) {
+        char currentSymbol = grammar[index][i];
+
+        if (currentSymbol >= 'A' && currentSymbol <= 'Z') {
+            // If the current symbol is a non-terminal, compute its FIRST set
+            computeFirst(currentSymbol);
+
+            // Add FIRST(currentSymbol) to FIRST(nonTerminal)
+            for (int j = 0; j < numRules; j++) {
+                if (grammar[j][0] == currentSymbol) {
+                    for (int k = 0; firstSets[j][k] != '\0'; k++) {
+                        if (strchr(firstSets[index], firstSets[j][k]) == nullptr) {
+                            int len = strlen(firstSets[index]);
+                            firstSets[index][len] = firstSets[j][k];
+                            firstSets[index][len + 1] = '\0';
+                        }
+                    }
+                    break;
+                }
+            }
+
+            // If FIRST(currentSymbol) does not contain ε, stop
+            if (strchr(firstSets[index], 'e') == nullptr) {
+                break;
+            }
+        } else {
+            // If the current symbol is a terminal, add it to FIRST(nonTerminal)
+            if (strchr(firstSets[index], currentSymbol) == nullptr) {
+                int len = strlen(firstSets[index]);
+                firstSets[index][len] = currentSymbol;
+                firstSets[index][len + 1] = '\0';
+            }
+            break;
+        }
+    }
+}
+
+void computeFollow(char nonTerminal) {
+    int index = -1;
+    for (int i = 0; i < numRules; i++) {
+        if (grammar[i][0] == nonTerminal) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1) return;
+
+    if (nonTerminal == grammar[0][0]) {
+        if (strchr(followSets[index], '$') == nullptr) {
+            int len = strlen(followSets[index]);
+            followSets[index][len] = '$';
+            followSets[index][len + 1] = '\0';
+        }
+    }
+
+    for (int i = 0; i < numRules; i++) {
+        for (int j = 3; grammar[i][j] != '\0'; j++) {
+            if (grammar[i][j] == nonTerminal) {
+                if (grammar[i][j + 1] != '\0') {
+                    char nextSymbol = grammar[i][j + 1];
+                    if (nextSymbol >= 'A' && nextSymbol <= 'Z') {
+                        for (int k = 0; k < numRules; k++) {
+                            if (grammar[k][0] == nextSymbol) {
+                                for (int l = 0; firstSets[k][l] != '\0'; l++) {
+                                    if (strchr(followSets[index], firstSets[k][l]) == nullptr) {
+                                        int len = strlen(followSets[index]);
+                                        followSets[index][len] = firstSets[k][l];
+                                        followSets[index][len + 1] = '\0';
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if (strchr(followSets[index], nextSymbol) == nullptr) {
+                            int len = strlen(followSets[index]);
+                            followSets[index][len] = nextSymbol;
+                            followSets[index][len + 1] = '\0';
+                        }
+                    }
+                } else {
+                    if (grammar[i][0] != nonTerminal) {
+                        computeFollow(grammar[i][0]);
+                        for (int k = 0; followSets[i][k] != '\0'; k++) {
+                            if (strchr(followSets[index], followSets[i][k]) == nullptr) {
+                                int len = strlen(followSets[index]);
+                                followSets[index][len] = followSets[i][k];
+                                followSets[index][len + 1] = '\0';
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
