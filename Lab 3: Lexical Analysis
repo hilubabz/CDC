@@ -1,0 +1,123 @@
+#include <iostream>
+#include <cctype>
+#include <string>
+
+using namespace std;
+
+// List of keywords
+const string keywords[] = {
+    "int", "float", "double", "char", "return", "if", "else", "while", "for",
+    "switch", "case", "default", "break", "continue", "void", "do", "long",
+    "short", "signed", "unsigned", "struct", "class", "public", "private",
+    "protected", "namespace", "using", "new", "delete", "try", "catch", "throw",
+    "static", "const", "volatile", "true", "false", "virtual", "this"
+};
+
+// Operators
+const string operators = "+-*/%=!<>|&";
+
+// Separators
+const string separators = "();{}[],.";
+
+// Function to check if a word is a keyword
+bool isKeyword(const string& str) {
+    int keywordCount = sizeof(keywords) / sizeof(keywords[0]);
+    for (int i = 0; i < keywordCount; i++) {
+        if (str == keywords[i]) return true;
+    }
+    return false;
+}
+
+// Function to check if a character is an operator
+bool isOperator(char ch) {
+    return operators.find(ch) != string::npos;
+}
+
+// Function to check if a character is a separator
+bool isSeparator(char ch) {
+    return separators.find(ch) != string::npos;
+}
+
+// Function to check if a word is an identifier
+bool isIdentifier(const string& str) {
+    if (str.empty() || isdigit(str[0]) || isKeyword(str)) return false;
+    for (char ch : str) {
+        if (!isalnum(ch) && ch != '_') return false;
+    }
+    return true;
+}
+
+// Function to check if a word is a number
+bool isNumber(const string& str) {
+    for (char ch : str) {
+        if (!isdigit(ch)) return false;
+    }
+    return true;
+}
+
+// Function to perform lexical analysis
+void lexicalAnalysis(const string& input) {
+    string token = "";
+    
+    for (size_t i = 0; i < input.length(); i++) {
+        char ch = input[i];
+
+        // If whitespace, process the current token
+        if (isspace(ch) || isSeparator(ch) || isOperator(ch)) {
+            if (!token.empty()) {
+                if (isKeyword(token)) {
+                    cout << "[Keyword]      : " << token << endl;
+                } else if (isNumber(token)) {
+                    cout << "[Number]       : " << token << endl;
+                } else if (isIdentifier(token)) {
+                    cout << "[Identifier]   : " << token << endl;
+                } else {
+                    cout << "[Unknown]      : " << token << endl;
+                }
+                token = "";
+            }
+
+            // Process separators
+            if (isSeparator(ch)) {
+                cout << "[Separator]    : " << ch << endl;
+            }
+
+            // Process operators
+            if (isOperator(ch)) {
+                string op = string(1, ch);
+                // Handle double-character operators (like "==", "!=")
+                if (i + 1 < input.length() && isOperator(input[i + 1])) {
+                    op += input[i + 1];
+                    i++;
+                }
+                cout << "[Operator]     : " << op << endl;
+            }
+        } else {
+            token += ch;
+        }
+    }
+
+    // Process any remaining token
+    if (!token.empty()) {
+        if (isKeyword(token)) {
+            cout << "[Keyword]      : " << token << endl;
+        } else if (isNumber(token)) {
+            cout << "[Number]       : " << token << endl;
+        } else if (isIdentifier(token)) {
+            cout << "[Identifier]   : " << token << endl;
+        } else {
+            cout << "[Unknown]      : " << token << endl;
+        }
+    }
+}
+
+int main() {
+    string input;
+    cout << "Enter a C++ statement: ";
+    getline(cin, input);
+
+    cout << "\nLexical Analysis Output:\n";
+    lexicalAnalysis(input);
+
+    return 0;
+}
