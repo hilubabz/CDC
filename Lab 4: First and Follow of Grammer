@@ -19,7 +19,7 @@ int main() {
     cin >> numRules;
     cin.ignore(); // To ignore the newline character after the number
 
-    cout << "Enter the production rules (e.g., S->aB): " << endl;
+    cout << "Enter the production rules: " << endl;
     for (int i = 0; i < numRules; i++) {
         cin.getline(grammar[i], MAX_SYMBOLS);
     }
