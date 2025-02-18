@@ -1,0 +1,70 @@
+#include <iostream>
+#include <stack>
+#include <map>
+#include <vector>
+#include <sstream>
+
+using namespace std;
+
+class ThreeAddressCode {
+private:
+    int tempCount;
+    vector<string> code;
+
+public:
+    ThreeAddressCode() : tempCount(0) {}
+
+    // Function to generate a new temporary variable name
+    string generateTemp() {
+        return "t" + to_string(tempCount++);
+    }
+
+    // Function to generate three-address code for an expression
+    void generateTAC(string op, string operand1, string operand2) {
+        string temp = generateTemp();
+        string statement = temp + " = " + operand1 + " " + op + " " + operand2;
+        code.push_back(statement);
+    }
+
+    // Function to print the generated TAC
+    void printTAC() {
+        for (const string& statement : code) {
+            cout << statement << endl;
+        }
+    }
+
+    // Function to process user input and generate TAC
+    void processInput() {
+        string expression;
+        cout << "Enter arithmetic expression in format (operand operator operand): ";
+        getline(cin, expression);
+
+        stringstream ss(expression);
+        string operand1, operand2, op;
+        
+        // Parse the input
+        ss >> operand1 >> op >> operand2;
+
+        // Generate the TAC for the given expression
+        generateTAC(op, operand1, operand2);
+    }
+};
+
+int main() {
+    ThreeAddressCode tac;
+
+    // Loop to keep accepting inputs from the user
+    char cont = 'y';
+    while (cont == 'y' || cont == 'Y') {
+        tac.processInput();
+        cout << "\nGenerated Three Address Code:\n";
+        tac.printTAC();
+        
+        // Ask user if they want to continue
+        cout << "\nDo you want to enter another expression? (y/n): ";
+        cin >> cont;
+        cin.ignore();  // To discard the newline character left by cin
+    }
+
+    return 0;
+}
