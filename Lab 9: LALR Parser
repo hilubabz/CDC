@@ -1,0 +1,157 @@
+#include <iostream>
+#include <cstring>
+#include <cctype>
+using namespace std;
+
+#define MAX 100
+
+char stack[MAX];
+int top = -1;
+char input[MAX];
+
+void push(char c) {
+    stack[++top] = c;
+}
+
+void pop(int count) {
+    top -= count;
+}
+
+void printStackAndInput(int index) {
+    cout << "\nStack: ";
+    for (int i = 0; i <= top; i++) {
+        cout << stack[i];
+    }
+    cout << "\tInput: ";
+    for (int i = index; i < strlen(input); i++) {
+        cout << input[i];
+    }
+    cout << "\tAction: ";
+}
+
+char peek(int pos) {
+    if (top - pos >= 0) {
+        return stack[top - pos];
+    }
+    return '\0';
+}
+
+int reduce() {
+    int reduced = 0;
+    
+    do {
+        reduced = 0;
+        
+        cout << "\nChecking reductions for stack: ";
+        for (int i = 0; i <= top; i++) {
+            cout << stack[i];
+        }
+        
+        // Rule 1: digit → F
+        if (isdigit(peek(0))) {
+            cout << "\nReducing digit " << stack[top] << " to F";
+            stack[top] = 'F';
+            reduced = 1;
+            continue;
+        }
+        
+        // Rule 2: F → T (when not part of multiplication)
+        if (peek(0) == 'F' && peek(1) != '*') {
+            cout << "\nReducing F to T";
+            stack[top] = 'T';
+            reduced = 1;
+            continue;
+        }
+        
+        // Rule 3: T * F → T (handle multiplication)
+        if (peek(0) == 'F' && peek(1) == '*' && peek(2) == 'T') {
+            cout << "\nReducing T * F to T";
+            pop(2);
+            stack[top] = 'T';
+            reduced = 1;
+            continue;
+        }
+        
+        // Rule 4: E * F → T (new rule to handle E*F case)
+        if (peek(0) == 'F' && peek(1) == '*' && peek(2) == 'E') {
+            cout << "\nReducing E * F to T";
+            pop(2);
+            stack[top] = 'T';
+            reduced = 1;
+            continue;
+        }
+        
+        // Rule 5: T → E (when not part of addition)
+        if (peek(0) == 'T' && peek(1) != '+') {
+            cout << "\nReducing T to E";
+            stack[top] = 'E';
+            reduced = 1;
+            continue;
+        }
+        
+        // Rule 6: E + T → E (handle addition)
+        if (peek(0) == 'T' && peek(1) == '+' && peek(2) == 'E') {
+            cout << "\nReducing E + T to E";
+            pop(2);
+            stack[top] = 'E';
+            reduced = 1;
+            continue;
+        }
+        
+    } while (reduced);
+    
+    return reduced;
+}
+
+void parseExpression() {
+    cout << "\nParsing Expression: " << input << "\n";
+    cout << "\nTrace of parsing steps:";
+    
+    int i = 0;
+    while (i < strlen(input)) {
+        printStackAndInput(i);
+        cout << "Shift " << input[i];
+        push(input[i]);
+        i++;
+        reduce();
+    }
+    
+    // Keep reducing until no more reductions are possible
+    cout << "\n\nPerforming final reductions:";
+    while (1) {
+        int did_reduce = reduce();
+        if (!did_reduce) break;
+    }
+    
+    cout << "\n\nFinal stack: ";
+    for (int i = 0; i <= top; i++) {
+        cout << stack[i];
+    }
+    
+    if (top == 0 && stack[top] == 'E') {
+        cout << "\n✅ Accepted: Valid Expression!\n";
+    } else {
+        cout << "\n❌ Rejected: Invalid Expression!\n";
+        cout << "Expected single 'E' on stack, found: ";
+        for (int i = 0; i <= top; i++) {
+            cout << stack[i];
+        }
+        cout << "\n";
+    }
+}
+
+int main() {
+    cout << "Enter an arithmetic expression (use digits, +, *): ";
+    cin >> input;
+    
+    // Input validation
+    for (int i = 0; i < strlen(input); i++) {
+        if (!isdigit(input[i]) && input[i] != '+' && input[i] != '*') {
+            cout << "\n❌ Invalid character in expression: " << input[i] << "\n";
+            return 1;
+        }
+    }
+    
+    parseExpression();
+    return 0;
+}
