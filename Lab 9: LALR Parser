@@ -94,7 +94,6 @@ bool parse(string input) {
 }
 
 int main() {
-    // string input = "aabb"; // Removed $ from input here
     string input;
     cout<<"Enter input string :";
     cin>>input;
